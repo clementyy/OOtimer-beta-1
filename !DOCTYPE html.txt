@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Cubing Timer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles using CSS variables, applied to the body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth theme transitions */
+        }
+
+        /* Standard (Blue) Theme - Adjusted for sleekness */
+        body[data-theme="standard"] {
+            --bg-color: #1c212c; /* Slightly darker background */
+            --text-color: #e0e6f0; /* Slightly softer light text */
+            --container-bg: #28303f; /* Darker gray-800 for container */
+            --timer-color: #5aa4f0; /* Brighter, modern blue */
+            --timer-ready-color: #f6ad55; /* Orange-400 */
+            --timer-holding-color: #a78bfa; /* Purple-400 */
+            --manual-mode-color: #a0aec0; /* Gray-500 */
+            --scramble-bg: #28303f; /* Container background for consistency */
+            --list-border: #3e475a; /* Darker border */
+            --solve-time-color: #63b3ed; /* Blue-400 */
+            --stat-value-color: #4ade80; /* Brighter green */
+            --button-bg: #4a5568; /* Gray-600 */
+            --button-hover-bg: #637187; /* Gray-700 */
+            --primary-btn-bg: #5aa4f0; /* Brighter blue */
+            --primary-btn-hover-bg: #3c82f6; /* Darker blue */
+            --danger-btn-bg: #ef4444; /* Red-500 */
+            --danger-btn-hover-bg: #dc2626; /* Red-600 */
+            --modal-bg: #28303f; /* Container background for consistency */
+            --modal-text-color: #e0e6f0; /* Light text */
+            --input-bg: #1c212c; /* Dark input background */
+            --input-border: #3e475a; /* Dark input border */
+            --placeholder-color: #718096; /* Lighter placeholder */
+            --canvas-bg: #1c212c; /* Canvas background */
+            --canvas-border: #3e475a; /* Canvas border */
+            --input-ring-color: #5aa4f0; /* Blue for input ring */
+            --input-ring-color-rgb: 90, 164, 240; /* RGB for Brighter Blue */
+        }
+
+        /* Black Theme - Adjusted for sleekness */
+        body[data-theme="black"] {
+            --bg-color: #0d0d0d; /* Near black */
+            --text-color: #f5f5f5; /* Off-white */
+            --container-bg: #1a1a1a; /* Darker black */
+            --timer-color: #00e0e0; /* Brighter cyan */
+            --timer-ready-color: #ffc107; /* Amber */
+            --timer-holding-color: #e000e0; /* Brighter magenta */
+            --manual-mode-color: #999999; /* Medium gray */
+            --scramble-bg: #1a1a1a; /* Darker black */
+            --list-border: #333333; /* Dark gray */
+            --solve-time-color: #00bfff; /* Deep sky blue */
+            --stat-value-color: #39e039; /* Brighter lime green */
+            --button-bg: #333333; /* Dark gray */
+            --button-hover-bg: #555555; /* Medium gray */
+            --primary-btn-bg: #007bff; /* Blue */
+            --primary-btn-hover-bg: #0056b3; /* Darker blue */
+            --danger-btn-bg: #dc3545; /* Red */
+            --danger-btn-hover-bg: #a71d2a; /* Darker red */
+            --modal-bg: #1a1a1a; /* Darker black */
+            --modal-text-color: #f5f5f5; /* Off-white */
+            --input-bg: #0d0d0d; /* Black input background */
+            --input-border: #333333; /* Dark input border */
+            --placeholder-color: #666666; /* Medium gray placeholder */
+            --canvas-bg: #0d0d0d; /* Canvas background */
+            --canvas-border: #333333; /* Canvas border */
+            --input-ring-color: #00e0e0; /* Cyan for input ring */
+            --input-ring-color-rgb: 0, 224, 224; /* RGB for Brighter Cyan */
+        }
+
+        /* White Theme - Adjusted for sleekness */
+        body[data-theme="white"] {
+            --bg-color: #f8f8f8; /* Off-white */
+            --text-color: #222222; /* Darker gray */
+            --container-bg: #ffffff; /* Pure white container */
+            --timer-color: #2196f3; /* Material blue */
+            --timer-ready-color: #ff9800; /* Orange */
+            --timer-holding-color: #9c27b0; /* Deep purple */
+            --manual-mode-color: #555555; /* Medium gray */
+            --scramble-bg: #ffffff; /* Pure white */
+            --list-border: #e0e0e0; /* Light gray */
+            --solve-time-color: #42a5f5; /* Light blue */
+            --stat-value-color: #4caf50; /* Green */
+            --button-bg: #e0e0e0; /* Light gray */
+            --button-hover-bg: #cccccc; /* Gray */
+            --primary-btn-bg: #2196f3; /* Material blue */
+            --primary-btn-hover-bg: #1976d2; /* Darker material blue */
+            --danger-btn-bg: #f44336; /* Red */
+            --danger-btn-hover-bg: #d32f2f; /* Darker red */
+            --modal-bg: #ffffff; /* Pure white */
+            --modal-text-color: #222222; /* Darker gray */
+            --input-bg: #f8f8f8; /* Off-white input background */
+            --input-border: #e0e0e0; /* Light input border */
+            --placeholder-color: #9e9e9e; /* Even lighter placeholder */
+            --canvas-bg: #f8f8f8; /* Canvas background */
+            --canvas-border: #e0e0e0; /* Canvas border */
+            --input-ring-color: #2196f3; /* Material blue for input ring */
+            --input-ring-color-rgb: 33, 150, 243; /* RGB for Material Blue */
+        }
+
+        /* Apply variables to elements */
+        .container {
+            position: relative;
+            max-width: 95%;
+            width: 100%;
+            padding: 2rem; /* Increased padding */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--container-bg);
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Softer, larger shadow */
+        }
+        .timer-display {
+            font-size: 5.5rem; /* Slightly larger font */
+            font-weight: 800; /* Bolder font */
+            letter-spacing: -0.05em; /* Tighter letter spacing */
+            text-align: center;
+            color: var(--timer-color);
+            transition: color 0.1s ease-in-out;
+            user-select: none;
+        }
+        .timer-ready {
+            color: var(--timer-ready-color);
+        }
+        .timer-holding {
+            color: var(--timer-holding-color);
+        }
+        .timer-manual-mode {
+            color: var(--manual-mode-color);
+        }
+        .scramble-display {
+            font-size: 1.6rem; /* Slightly larger */
+            font-weight: 600;
+            text-align: center;
+            background-color: var(--scramble-bg);
+            padding: 1.2rem; /* Increased padding */
+            border-radius: 0.8rem; /* More rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            user-select: none;
+        }
+        .user-id-display {
+            font-size: 0.9rem; /* Slightly larger */
+            text-align: center;
+            color: var(--manual-mode-color);
+            margin-top: 0.75rem; /* More spacing */
+            word-break: break-all;
+        }
+        .solves-list-container {
+            background-color: var(--container-bg);
+            padding: 1.2rem; /* Increased padding */
+            border-radius: 0.8rem; /* More rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            max-height: 350px; /* Slightly taller */
+            overflow-y: auto;
+        }
+        .solves-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .solves-list li {
+            padding: 0.6rem 0; /* More padding */
+            border-bottom: 1px solid var(--list-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .solves-list li:last-child {
+            border-bottom: none;
+        }
+        .solve-time {
+            font-weight: 700; /* Bolder */
+            color: var(--solve-time-color);
+        }
+        .solve-scramble {
+            font-size: 0.9rem; /* Slightly larger */
+            color: var(--manual-mode-color);
+            flex-grow: 1;
+            margin-left: 1.2rem; /* More spacing */
+        }
+        .delete-solve-btn {
+            background-color: var(--danger-btn-bg);
+            color: white;
+            padding: 0.3rem 0.6rem; /* Slightly larger */
+            border-radius: 0.4rem; /* More rounded */
+            font-size: 0.8rem; /* Slightly larger */
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s; /* Add transform for subtle click effect */
+        }
+        .delete-solve-btn:hover {
+            background-color: var(--danger-btn-hover-bg);
+            transform: translateY(-1px); /* Subtle lift */
+        }
+        .delete-solve-btn:active {
+            transform: translateY(0); /* Press effect */
+        }
+        .stats-display {
+            display: flex;
+            justify-content: space-around;
+            gap: 1.2rem; /* More spacing */
+            margin-top: 1.5rem; /* More spacing */
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background-color: var(--container-bg);
+            padding: 0.8rem 1.2rem; /* Increased padding */
+            border-radius: 0.8rem; /* More rounded corners */
+            text-align: center;
+            flex: 1;
+            min-width: 130px; /* Slightly wider */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+        }
+        .stat-label {
+            font-size: 0.9rem; /* Slightly larger */
+            color: var(--manual-mode-color);
+        }
+        .stat-value {
+            font-size: 1.35rem; /* Slightly larger */
+            font-weight: 800; /* Bolder */
+            color: var(--stat-value-color);
+        }
+
+        /* Scramble Draw Canvas */
+        #scramble-canvas {
+            background-color: var(--canvas-bg);
+            border-radius: 0.8rem; /* More rounded */
+            display: block;
+            margin: 1.2rem auto; /* More margin */
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            border: 1px solid var(--canvas-border);
+        }
+
+        /* Modals (General Styles) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75); /* Slightly darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: var(--modal-bg);
+            padding: 2.2rem; /* Increased padding */
+            border-radius: 1rem; /* More rounded */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Stronger, more modern shadow */
+            width: 90%;
+            max-width: 550px; /* Slightly wider */
+            transform: translateY(-30px); /* More pronounced slide-in */
+            transition: transform 0.3s ease-in-out;
+            color: var(--modal-text-color);
+            overflow-y: auto; /* Enable scrolling for modal content */
+            max-height: 90vh; /* Limit modal height */
+        }
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem; /* More spacing */
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem; /* Larger close button */
+            color: var(--manual-mode-color);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close-btn:hover {
+            color: var(--text-color); /* Highlight on hover */
+        }
+        .modal-body label {
+            display: block;
+            margin-bottom: 0.6rem; /* More spacing */
+            color: var(--modal-text-color);
+            font-weight: 600;
+        }
+        .modal-body input[type="number"],
+        .modal-body input[type="text"],
+        .modal-body select {
+            width: 100%;
+            padding: 0.9rem; /* Increased padding */
+            margin-bottom: 1.2rem; /* More spacing */
+            border-radius: 0.6rem; /* More rounded */
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s; /* Smooth transitions */
+        }
+        .modal-body input:focus,
+        .modal-body select:focus {
+            border-color: var(--input-ring-color);
+            box-shadow: 0 0 0 3px rgba(var(--input-ring-color-rgb), 0.3);
+            outline: none;
+        }
+        .modal-body input::placeholder {
+            color: var(--placeholder-color);
+        }
+        .modal-body button {
+            width: 100%;
+            padding: 0.9rem; /* Increased padding */
+            border-radius: 0.6rem; /* More rounded */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s; /* Add transform and shadow */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: var(--primary-btn-bg);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-btn-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-danger {
+            background-color: var(--danger-btn-bg);
+            color: white;
+            margin-top: 1.5rem; /* More spacing */
+        }
+        .btn-danger:hover {
+            background-color: var(--danger-btn-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-danger:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .manual-entry-section {
+            border-top: 1px solid var(--list-border);
+            padding-top: 1.8rem; /* More spacing */
+            margin-top: 1.8rem; /* More spacing */
+        }
+
+        /* Quick Event Dropdown Specific Styles */
+        #quick-event-dropdown {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: auto;
+            background-color: transparent;
+            display: block;
+            justify-content: flex-start;
+            align-items: flex-start;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: none;
+        }
+        #quick-event-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        #quick-event-dropdown .modal-content {
+            position: absolute;
+            top: 4rem; /* Adjusted position */
+            left: 1.5rem; /* Adjusted position */
+            max-width: 220px; /* Slightly wider */
+            padding: 1.2rem; /* Adjusted padding */
+            transform: none;
+            transition: none;
+        }
+        #quick-event-dropdown.open .modal-content {
+            transform: none;
+        }
+        #quick-event-dropdown .modal-body {
+            padding: 0;
+        }
+        #quick-event-dropdown .modal-body select {
+            margin-bottom: 0;
+        }
+        #quick-event-toggle-btn {
+            position: absolute;
+            top: 1rem; /* Adjusted position */
+            left: 1.5rem; /* Adjusted position */
+            z-index: 1001;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            padding: 0.6rem 1rem; /* Adjusted padding */
+            border-radius: 0.6rem; /* More rounded */
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+        #quick-event-toggle-btn:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        #quick-event-toggle-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Settings Button Specific Styles */
+        #settings-btn {
+            position: absolute;
+            top: 1rem; /* Adjusted position */
+            right: 1.5rem; /* Adjusted position */
+            padding: 0.6rem 1rem; /* Adjusted padding */
+            font-size: 0.9rem; /* Slightly larger */
+            z-index: 1001;
+            width: auto;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border-radius: 0.6rem; /* More rounded */
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+        #settings-btn:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        #settings-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Scramble Navigation Buttons */
+        .scramble-nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem; /* More spacing */
+            margin-top: 1.5rem; /* More spacing */
+        }
+        .scramble-nav-buttons button {
+            padding: 0.8rem 1.8rem; /* Increased padding */
+            border-radius: 0.6rem; /* More rounded */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .scramble-nav-buttons button:hover:not(:disabled) {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .scramble-nav-buttons button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .scramble-nav-buttons button:disabled {
+            opacity: 0.4; /* Slightly more opaque disabled state */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* New manual timer input style */
+        #manual-timer-main-input {
+            font-size: 5.5rem; /* Slightly larger font */
+            font-weight: 800; /* Bolder font */
+            letter-spacing: -0.05em; /* Tighter letter spacing */
+            text-align: center;
+            background-color: transparent;
+            border: 2px solid transparent; /* Default transparent border */
+            outline: none;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+            color: var(--manual-mode-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        #manual-timer-main-input:focus {
+            border-color: var(--input-ring-color);
+            box-shadow: 0 0 0 4px rgba(var(--input-ring-color-rgb), 0.4);
+            border-radius: 0.6rem;
+        }
+        #manual-timer-main-input::placeholder {
+            color: var(--placeholder-color);
+        }
+
+        /* Settings Modal Sections */
+        .settings-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--list-border);
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .settings-section h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-btn-bg);
+            margin-bottom: 1.2rem;
+        }
+
+        /* Camera Feed */
+        #camera-feed {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            background-color: black;
+            border: 1px solid var(--canvas-border);
+            margin: 1rem auto;
+            border-radius: 0.8rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #camera-feed.hidden {
+            display: none;
+        }
+
+        /* Custom Toggle Switch for Camera */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+            margin-bottom: 1.2rem;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input-border);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--input-bg);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-btn-bg);
+        }
+
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary-btn-bg);
+        }
+
+        input:checked + .toggle-slider:before {
+            -webkit-transform: translateX(16px);
+            -ms-transform: translateX(16px);
+            transform: translateX(16px);
+        }
+
+        /* AI Feedback Display */
+        #ai-feedback-display {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--stat-value-color); /* Green for good, maybe red for bad */
+            margin-top: 1rem;
+            min-height: 1.5rem; /* Reserve space */
+        }
+        #ai-feedback-display.error {
+            color: var(--danger-btn-bg);
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .timer-display, #manual-timer-main-input {
+                font-size: 3.8rem;
+            }
+            .scramble-display {
+                font-size: 1.3rem;
+                padding: 0.8rem;
+            }
+            .container {
+                padding: 1.2rem;
+                gap: 1rem;
+            }
+            .stats-display {
+                flex-direction: column;
+                gap: 0.8rem;
+                margin-top: 1rem;
+            }
+            .stat-item {
+                width: 100%;
+                min-width: unset;
+                padding: 0.6rem 0.8rem;
+            }
+            .modal-content {
+                padding: 1.8rem;
+            }
+            #quick-event-toggle-btn {
+                top: 0.8rem;
+                left: 0.8rem;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            #quick-event-dropdown .modal-content {
+                top: 3.5rem;
+                left: 0.8rem;
+            }
+            #settings-btn {
+                top: 0.8rem;
+                right: 0.8rem;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .scramble-nav-buttons button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.85rem;
+            }
+            .user-id-display {
+                font-size: 0.8rem;
+            }
+            .settings-section h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- New quick event toggle button -->
+        <button id="quick-event-toggle-btn" class="p-2 rounded-lg shadow-md">
+            Change Event
+        </button>
+
+        <!-- Settings button, now in top right -->
+        <button id="settings-btn" class="py-3 rounded-lg mt-4">Settings</button>
+
+        <!-- Camera Feed Display -->
+        <div class="flex flex-col items-center">
+            <video id="camera-feed" class="hidden" autoplay playsinline muted></video>
+            <span id="recording-status" class="hidden text-red-500 font-bold ml-2">REC</span>
+        </div>
+
+        <!-- AI Feedback Display -->
+        <div id="ai-feedback-display"></div>
+
+
+        <div id="scramble-display" class="scramble-display">Generating Scramble...</div>
+        <canvas id="scramble-canvas" width="200" height="150"></canvas>
+
+        <!-- Scramble Navigation Buttons -->
+        <div class="scramble-nav-buttons">
+            <button id="last-scramble-btn" disabled>Last</button>
+            <button id="next-scramble-btn">Next</button>
+        </div>
+
+        <!-- Timer Display / Manual Input Container -->
+        <div id="timer-container">
+            <div id="timer-display" class="timer-display">0.000</div>
+            <input type="text" id="manual-timer-main-input" class="hidden">
+        </div>
+        
+        <div class="flex flex-col items-center mt-2">
+            <span id="user-id-display" class="user-id-display">Loading User ID...</span>
+            <span id="wca-id-display" class="user-id-display mt-1">WCA ID: N/A</span>
+        </div>
+
+        <div class="stats-display">
+            <div class="stat-item">
+                <div class="stat-label">Solves</div>
+                <div id="total-solves" class="stat-value">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Best Time</div>
+                <div id="best-time" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Average</div>
+                <div id="average-time" class="stat-value">N/A</div>
+            </div>
+            <!-- New Statistics -->
+            <div class="stat-item">
+                <div class="stat-label">Best Ao5</div>
+                <div id="best-ao5" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao12</div>
+                <div id="ao12" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao25</div>
+                <div id="ao25" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao50</div>
+                <div id="ao50" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao100</div>
+                <div id="ao100" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao200</div>
+                <div id="ao200" class="stat-value">N/A</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ao500</div>
+                <div id="ao500" class="stat-value">N/A</div>
+            </div>
+        </div>
+
+        <div class="solves-list-container">
+            <h3 class="text-xl font-semibold mb-4 text-center text-blue-300">Solve History</h3>
+            <ul id="solves-list" class="solves-list">
+                <!-- Solves will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quick Event Dropdown/Modal (initially hidden) -->
+    <div id="quick-event-dropdown" class="modal-overlay hidden">
+        <div class="modal-content !max-w-xs !p-4">
+            <div class="modal-header !mb-2">
+                <h3 class="text-xl font-bold">Select Event</h3>
+                <button id="close-quick-event-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- The event-select will be moved here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold">Settings</h2>
+                <button id="close-settings-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Timer Settings Section -->
+                <div class="settings-section">
+                    <h3>Timer Settings</h3>
+                    <label for="hold-time-threshold">Timer Hold Time (ms):</label>
+                    <input type="number" id="hold-time-threshold" min="100" max="2000" value="500">
+
+                    <!-- New timer mode toggle button -->
+                    <button id="toggle-timer-mode-btn" class="btn-primary mt-4 mb-4">Switch to Manual Entry</button>
+                </div>
+
+                <!-- Scramble Settings Section -->
+                <div class="settings-section">
+                    <h3>Scramble Settings</h3>
+                    <label for="scramble-length">Scramble Length (Current Event):</label>
+                    <input type="number" id="scramble-length" min="10" max="50" value="20">
+                    <!-- The event-select will be moved here dynamically -->
+                </div>
+
+                <!-- Display Settings Section -->
+                <div class="settings-section">
+                    <h3>Display Settings</h3>
+                    <!-- New Theme Selection -->
+                    <label for="theme-select">Theme:</label>
+                    <select id="theme-select">
+                        <option value="standard">Standard (Blue)</option>
+                        <option value="black">Black</option>
+                        <option value="white">White</option>
+                    </select>
+                </div>
+
+                <!-- Camera Settings Section -->
+                <div class="settings-section">
+                    <h3>Camera Settings</h3>
+                    <label for="camera-toggle">Enable Camera:
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="camera-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <button id="start-recording-btn" class="btn-primary mt-4">Start Recording</button>
+                    <button id="stop-recording-btn" class="btn-danger mt-2" disabled>Stop Recording</button>
+                </div>
+
+                <!-- Data Management Section -->
+                <div class="settings-section">
+                    <h3>Data Management</h3>
+                    <!-- WCA ID Input -->
+                    <label for="wca-id-input">WCA ID (Optional):</label>
+                    <input type="text" id="wca-id-input" placeholder="Enter your WCA ID">
+                    <button id="save-wca-id-btn" class="btn-primary mb-4">Save WCA ID</button>
+
+                    <div class="manual-entry-section">
+                        <h3 class="text-xl font-semibold">Manual Time Entry (for arbitrary solves)</h3>
+                        <label for="manual-time-input">Enter Time (e.g., 10.5, 1:23.45):</label>
+                        <input type="text" id="manual-time-input">
+                        <button id="add-manual-solve-btn" class="btn-primary">Add Manual Solve</button>
+                    </div>
+
+                    <button id="clear-solves-btn" class="btn-danger">Clear All Solves</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal (for clearing solves) -->
+    <div id="confirmation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold">Confirm Action</h2>
+                <button id="close-confirmation-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">Are you sure you want to clear all your solve data? This action cannot be undone.</p>
+                <div class="flex justify-end gap-4">
+                    <button id="cancel-clear-btn" class="btn-primary bg-gray-600 hover:bg-gray-700 w-1/2">Cancel</button>
+                    <button id="confirm-clear-btn" class="btn-danger w-1/2">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Permission Denied Modal -->
+    <div id="camera-permission-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold">Camera Access Denied</h2>
+                <button id="close-camera-permission-modal-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">It looks like camera access was denied. To enable the camera, please follow these steps:</p>
+                <ul class="list-disc list-inside mb-4">
+                    <li><strong>For Chrome/Edge:</strong> Click the camera icon in the address bar (usually on the right side), then select "Always allow" or "Continue allowing" and refresh the page.</li>
+                    <li><strong>For Firefox:</strong> Click the camera icon in the address bar, then select "Allow" or "Always Allow" and refresh the page.</li>
+                    <li><strong>For Safari:</strong> Go to Safari > Settings > Websites > Camera, and set "cubing-timer-app" to "Allow". You may need to refresh the page.</li>
+                    <li><strong>General:</strong> Check your operating system's privacy settings to ensure camera access is enabled for your browser.</li>
+                </ul>
+                <p>After granting permission, please try enabling the camera again in the settings.</p>
+                <button id="ok-camera-permission-btn" class="btn-primary mt-4">OK</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- The standalone event-select element - hidden by default, moved dynamically -->
+    <select id="event-select" class="hidden">
+        <option value="3x3">3x3x3 Cube</option>
+        <option value="2x2">2x2x2 Cube</option>
+        <option value="4x4">4x4x4 Cube</option>
+        <option value="5x5">5x5x5 Cube</option>
+        <option value="6x6">6x6x6 Cube</option>
+        <option value="7x7">7x7x7 Cube</option>
+        <option value="Clock">Clock</option>
+        <option value="Megaminx">Megaminx</option>
+        <option value="Pyraminx">Pyraminx</option>
+        <option value="Skewb">Skewb</option>
+        <option value="Square-1">Square-1</option>
+        <option value="3x3 OH">3x3x3 One-Handed</option>
+        <option value="3x3 BLD">3x3x3 Blindfolded</option>
+        <option value="3x3 Multi-BLD">3x3x3 Multi-Blind</option>
+        <option value="FTO">FTO</option>
+    </select>
+
+    <!-- Hidden canvas for capturing video frames -->
+    <canvas id="capture-canvas" style="display:none;"></canvas>
+
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase and app state
+        let app;
+        let db;
+        let auth;
+        let userId;
+        let isAuthReady = false; // Flag to ensure Firestore operations wait for auth
+
+        // Timer state variables
+        let timerInterval;
+        let startTime;
+        let elapsedTime = 0; // In milliseconds
+        let running = false;
+        let spacebarDownTime = 0; // To track how long spacebar is held
+        let readyToStart = false; // Flag to indicate timer is ready to start
+        
+        // Customizable settings
+        let scrambleLength = 20; // Default scramble length
+        let holdTimeThreshold = 500; // Default milliseconds to hold spacebar to start
+        let currentEvent = '3x3'; // Default event
+        let timerMode = 'keyboard'; // 'keyboard' or 'manual'
+        let currentTheme = 'standard'; // Default theme
+        let wcaId = ''; // New: WCA ID variable
+        let cameraEnabled = false; // New: Camera enabled state
+        let mediaStream = null; // Stores the camera media stream
+        let mediaRecorder = null; // New: MediaRecorder instance
+        let recordedChunks = []; // New: Array to store recorded video chunks
+        let recording = false; // New: Flag to indicate if recording is active
+
+        // Scramble and solve data
+        let currentScramble = '';
+        let solves = [];
+        let scrambleHistory = []; // Array to store generated scrambles
+        let currentScrambleIndex = -1; // Index of the currently displayed scramble in history
+
+        // Cube state and colors
+        // Default orientation: White top, Green front
+        const initialCubeState3x3 = {
+            'U': Array(3).fill(0).map(() => Array(3).fill('W')), // White
+            'D': Array(3).fill(0).map(() => Array(3).fill('Y')), // Yellow
+            'F': Array(3).fill(0).map(() => Array(3).fill('G')), // Green
+            'B': Array(3).fill(0).map(() => Array(3).fill('B')), // Blue
+            'L': Array(3).fill(0).map(() => Array(3).fill('R')), // Red
+            'R': Array(3).fill(0).map(() => Array(3).fill('O'))  // Orange
+        };
+
+        const initialCubeState2x2 = {
+            'U': Array(2).fill(0).map(() => Array(2).fill('W')), // White
+            'D': Array(2).fill(0).map(() => Array(2).fill('Y')), // Yellow
+            'F': Array(2).fill(0).map(() => Array(2).fill('G')), // Green
+            'B': Array(2).fill(0).map(() => Array(2).fill('B')), // Blue
+            'L': Array(2).fill(0).map(() => Array(2).fill('R')), // Red
+            'R': Array(2).fill(0).map(() => Array(2).fill('O'))  // Orange
+        };
+
+        const initialCubeState4x4 = {
+            'U': Array(4).fill(0).map(() => Array(4).fill('W')), // White
+            'D': Array(4).fill(0).map(() => Array(4).fill('Y')), // Yellow
+            'F': Array(4).fill(0).map(() => Array(4).fill('G')), // Green
+            'B': Array(4).fill(0).map(() => Array(4).fill('B')), // Blue
+            'L': Array(4).fill(0).map(() => Array(4).fill('R')), // Red
+            'R': Array(4).fill(0).map(() => Array(4).fill('O'))  // Orange
+        };
+
+        // Pyraminx state: Represented as 4 faces (U, L, R, B) and 4 tips (uTip, lTip, rTip, bTip)
+        // Each face is a 3x3 grid for drawing purposes, with 'X' for empty cells to form the triangle shape.
+        // The layout here is a 2D net: U at top, L/R/B below U.
+        const initialPyraminxState = {
+            'U': [
+                ['X', 'X', 'Y', 'X', 'X'],
+                ['X', 'Y', 'Y', 'Y', 'X'],
+                ['Y', 'Y', 'Y', 'Y', 'Y']
+            ],
+            'L': [
+                ['X', 'X', 'R', 'X', 'X'],
+                ['X', 'R', 'R', 'R', 'X'],
+                ['R', 'R', 'R', 'R', 'R']
+            ],
+            'R': [
+                ['X', 'X', 'O', 'X', 'X'],
+                ['X', 'O', 'O', 'O', 'X'],
+                ['O', 'O', 'O', 'O', 'O']
+            ],
+            'B': [ // Back face, conceptually
+                ['X', 'X', 'G', 'X', 'X'],
+                ['X', 'G', 'G', 'G', 'X'],
+                ['G', 'G', 'G', 'G', 'G']
+            ],
+            'uTip': 'Y',
+            'lTip': 'R',
+            'rTip': 'O',
+            'bTip': 'G'
+        };
+
+
+        let currentCubeState; // Will be set based on event
+
+        // This colorMap will be updated based on the theme
+        let colorMap = {
+            'Y': '#FFFF00', // Yellow
+            'W': '#FFFFFF', // White
+            'B': '#0000FF', // Blue
+            'G': '#00FF00', // Green
+            'O': '#FF8C00', // Orange
+            'R': '#FF0000',  // Red
+            'X': '#1a202c' // Placeholder for empty/invisible sticker (matches background)
+        };
+
+        // DOM elements
+        const timerDisplay = document.getElementById('timer-display');
+        const manualTimerMainInput = document.getElementById('manual-timer-main-input'); // New element
+        const scrambleDisplay = document.getElementById('scramble-display');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const wcaIdDisplay = document.getElementById('wca-id-display'); // New WCA ID display
+        const solvesList = document.getElementById('solves-list');
+        const totalSolvesDisplay = document.getElementById('total-solves');
+        const bestTimeDisplay = document.getElementById('best-time');
+        const averageTimeDisplay = document.getElementById('average-time');
+        const scrambleCanvas = document.getElementById('scramble-canvas');
+        const ctx = scrambleCanvas.getContext('2d');
+        const cameraFeed = document.getElementById('camera-feed'); // New camera feed element
+        const recordingStatusDisplay = document.getElementById('recording-status'); // New recording status display
+        const aiFeedbackDisplay = document.getElementById('ai-feedback-display'); // New AI feedback display
+        const captureCanvas = document.getElementById('capture-canvas'); // Hidden canvas for frame capture
+        const captureCtx = captureCanvas.getContext('2d'); // Context for hidden canvas
+
+        // New stats display elements
+        const bestAo5Display = document.getElementById('best-ao5');
+        const ao12Display = document.getElementById('ao12');
+        const ao25Display = document.getElementById('ao25');
+        const ao50Display = document.getElementById('ao50');
+        const ao100Display = document.getElementById('ao100');
+        const ao200Display = document.getElementById('ao200');
+        const ao500Display = document.getElementById('ao500');
+
+        // Settings modal elements
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const scrambleLengthInput = document.getElementById('scramble-length');
+        const holdTimeThresholdInput = document.getElementById('hold-time-threshold');
+        const clearSolvesBtn = document.getElementById('clear-solves-btn');
+        const manualTimeInput = document.getElementById('manual-time-input'); // Input inside settings modal
+        const addManualSolveBtn = document.getElementById('add-manual-solve-btn');
+        const toggleTimerModeBtn = document.getElementById('toggle-timer-mode-btn'); // New button
+        const themeSelect = document.getElementById('theme-select'); // New theme select element
+        const wcaIdInput = document.getElementById('wca-id-input'); // New WCA ID input
+        const saveWcaIdBtn = document.getElementById('save-wca-id-btn'); // New Save WCA ID button
+        const cameraToggle = document.getElementById('camera-toggle'); // New camera toggle switch
+        const startRecordingBtn = document.getElementById('start-recording-btn'); // New recording button
+        const stopRecordingBtn = document.getElementById('stop-recording-btn'); // New recording button
+
+        // Quick Event Select elements
+        const quickEventToggleBtn = document.getElementById('quick-event-toggle-btn');
+        const quickEventDropdown = document.getElementById('quick-event-dropdown');
+        const closeQuickEventBtn = document.getElementById('close-quick-event-btn');
+        const eventSelect = document.getElementById('event-select'); // This will be moved dynamically
+
+        // Scramble Navigation Buttons
+        const lastScrambleBtn = document.getElementById('last-scramble-btn');
+        const nextScrambleBtn = document.getElementById('next-scramble-btn');
+
+
+        // Confirmation modal elements
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeConfirmationBtn = document.getElementById('close-confirmation-btn');
+        const cancelClearBtn = document.getElementById('cancel-clear-btn');
+        const confirmClearBtn = document.getElementById('confirm-clear-btn');
+
+        // Camera Permission Denied Modal elements
+        const cameraPermissionModal = document.getElementById('camera-permission-modal');
+        const closeCameraPermissionModalBtn = document.getElementById('close-camera-permission-modal-btn');
+        const okCameraPermissionBtn = document.getElementById('ok-camera-permission-btn');
+
+        // --- Firebase Initialization and Authentication ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Initialize Firebase
+        if (Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Listen for authentication state changes
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // User is signed in.
+                    userId = user.uid;
+                    userIdDisplay.textContent = `User ID: ${userId}`;
+                    console.log("User signed in:", userId);
+                    isAuthReady = true;
+                    await loadSettings(); // Load settings first (await to ensure event and theme are set)
+                    loadSolves(); // Then load solves
+                    updateTimerModeUI(); // Update UI based on loaded timer mode
+                    updateWCAIdDisplay(); // Update WCA ID display
+                    // Initial camera setup based on loaded settings
+                    if (cameraEnabled) {
+                        enableCamera();
+                    }
+                } else {
+                    // User is signed out. Attempt to sign in with custom token or anonymously.
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                            console.log("Signed in with custom token.");
+                        } else {
+                            await signInAnonymously(auth);
+                            console.log("Signed in anonymously.");
+                        }
+                    } catch (error) {
+                        console.error("Firebase authentication error:", error);
+                        userIdDisplay.textContent = "Authentication Error!";
+                    }
+                }
+            });
+        } else {
+            console.error("Firebase config is not provided. Firestore features will not be available.");
+            userIdDisplay.textContent = "Firestore Disabled (No Config)";
+            isAuthReady = true; // Allow app to run without Firestore
+            // Set initial cube state and generate scramble even without Firestore
+            currentCubeState = JSON.parse(JSON.stringify(initialCubeState3x3));
+            generateScramble(true); // Generate initial scramble and add to history
+            updateTimerModeUI(); // Update UI for default timer mode
+            applyTheme(currentTheme); // Apply default theme if no Firebase
+            updateWCAIdDisplay(); // Update WCA ID display even if no Firebase
+        }
+
+        // --- Theme Application Logic ---
+        function applyTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            currentTheme = themeName; // Update global theme variable
+
+            // Update the 'X' color in colorMap to match the current canvas background
+            // This ensures invisible stickers blend with the background.
+            const computedStyle = getComputedStyle(document.body);
+            colorMap['X'] = computedStyle.getPropertyValue('--canvas-bg').trim();
+
+            // Redraw the cube with updated colors if it's currently visible
+            if (currentCubeState) {
+                drawCube(currentCubeState, currentEvent);
+            }
+        }
+
+
+        // --- Timer Logic ---
+
+        // Formats milliseconds into a readable time string (MM:SS.mmm)
+        function formatTime(ms, isDnf = false, plusTwo = false) {
+            if (isDnf) return 'DNF';
+            let formattedTime = '';
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor((ms % 1000));
+
+            if (minutes > 0) {
+                formattedTime += `${minutes}:`;
+            }
+            formattedTime += `${seconds.toString().padStart(minutes > 0 ? 2 : 1, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+            
+            if (plusTwo) {
+                formattedTime += '+';
+            }
+            return formattedTime;
+        }
+
+        // Updates the timer display
+        function updateTimerDisplay() {
+            if (running) {
+                elapsedTime = Date.now() - startTime;
+            }
+            timerDisplay.textContent = formatTime(elapsedTime);
+            if (running) {
+                requestAnimationFrame(updateTimerDisplay);
+            }
+        }
+
+        // Starts the timer
+        function startTimer() {
+            if (!running) {
+                startTime = Date.now();
+                running = true;
+                timerDisplay.classList.remove('timer-ready', 'timer-holding', 'timer-manual-mode');
+                timerDisplay.style.color = 'var(--timer-color)'; // Use CSS variable
+                requestAnimationFrame(updateTimerDisplay);
+
+                // AI Feature: Capture image and analyze on timer start
+                if (cameraEnabled && mediaStream && cameraFeed.readyState === 4) { // Check if video is ready
+                    analyzeStartImage();
+                } else if (cameraEnabled) {
+                    aiFeedbackDisplay.textContent = "Camera not ready for AI analysis.";
+                    aiFeedbackDisplay.classList.add('error');
+                }
+            }
+        }
+
+        // Stops the timer
+        function stopTimer() {
+            if (running) {
+                running = false;
+                clearInterval(timerInterval); // Clear any old interval if it was used
+                elapsedTime = Date.now() - startTime;
+                timerDisplay.textContent = formatTime(elapsedTime);
+                saveSolve(elapsedTime, currentScramble, currentEvent); // Save the solve with event
+                generateScramble(true); // Generate new scramble for next solve, add to history
+            }
+        }
+
+        // Resets the timer
+        function resetTimer() {
+            stopTimer(); // Ensure timer is stopped
+            elapsedTime = 0;
+            timerDisplay.textContent = '0.000';
+            manualTimerMainInput.value = ''; // Changed: Clear the input box
+            manualTimerMainInput.style.borderColor = 'transparent'; // Reset border
+            manualTimerMainInput.style.boxShadow = 'none'; // Reset shadow
+            timerDisplay.classList.remove('timer-ready', 'timer-holding');
+            if (timerMode === 'manual') {
+                timerDisplay.classList.add('timer-manual-mode');
+                manualTimerMainInput.classList.add('timer-manual-mode');
+            } else {
+                timerDisplay.style.color = 'var(--timer-color)'; // Reset to blue (or theme color)
+            }
+            running = false;
+            readyToStart = false;
+            spacebarDownTime = 0;
+            aiFeedbackDisplay.textContent = ''; // Clear AI feedback on reset
+            aiFeedbackDisplay.classList.remove('error');
+        }
+
+        // --- Scramble Generation ---
+
+        function generateScrambleForEvent(eventType, length) {
+            let scramble = [];
+            let moves = [];
+            let modifiers = ["", "'", "2"];
+            let lastMoveAxis = -1; // For 3x3, 2x2, 4x4-7x7
+
+            switch (eventType) {
+                case '3x3':
+                case '3x3 OH':
+                case '3x3 BLD':
+                case '3x3 Multi-BLD':
+                    moves = ["R", "L", "U", "D", "F", "B"];
+                    for (let i = 0; i < length; i++) {
+                        let moveIndex;
+                        let moveAxis;
+                        do {
+                            moveIndex = Math.floor(Math.random() * moves.length);
+                            moveAxis = Math.floor(moveIndex / 2);
+                        } while (moveAxis === lastMoveAxis);
+                        scramble.push(moves[moveIndex] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                        lastMoveAxis = moveAxis;
+                    }
+                    break;
+                case '2x2':
+                    moves = ["R", "U", "F"]; // Common 2x2 moves
+                    for (let i = 0; i < length; i++) {
+                        let moveIndex;
+                        let moveAxis;
+                        do {
+                            moveIndex = Math.floor(Math.random() * moves.length);
+                            moveAxis = moveIndex; // No axis concept for 2x2 like 3x3
+                        } while (moveAxis === lastMoveAxis);
+                        scramble.push(moves[moveIndex] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                        lastMoveAxis = moveAxis;
+                    }
+                    break;
+                case '4x4':
+                case '5x5':
+                case '6x6':
+                case '7x7':
+                    // For larger cubes, add inner layer moves (e.g., r, u, f)
+                    // For simplicity, we'll use 3x3 moves + a few inner moves.
+                    // A full proper scramble generator for NxN is very complex.
+                    moves = ["R", "L", "U", "D", "F", "B", "Rw", "Uw", "Fw"]; // w for wide moves
+                    modifiers = ["", "'", "2"];
+                    for (let i = 0; i < length; i++) {
+                        let move = moves[Math.floor(Math.random() * moves.length)];
+                        scramble.push(move + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                    }
+                    break;
+                case 'Pyraminx':
+                    moves = ["U", "L", "R", "B"]; // Face turns
+                    const tipMoves = ["u", "l", "r", "b"]; // Tip turns
+                    modifiers = ["", "'"]; // Pyraminx usually only has prime
+                    for (let i = 0; i < length; i++) {
+                        if (Math.random() < 0.7) { // More face turns
+                            scramble.push(moves[Math.floor(Math.random() * moves.length)] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                        } else { // Less tip turns
+                            scramble.push(tipMoves[Math.floor(Math.random() * tipMoves.length)] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                        }
+                    }
+                    break;
+                case 'Megaminx':
+                    // Simplified Megaminx scramble (very complex in full)
+                    moves = ["R", "U"];
+                    const megaModifiers = ["++", "--"]; // Common megaminx modifiers
+                    for (let i = 0; i < length; i++) {
+                        const moveType = moves[Math.floor(Math.random() * moves.length)];
+                        const modifier = megaModifiers[Math.floor(Math.random() * megaModifiers.length)];
+                        scramble.push(moveType + modifier);
+                    }
+                    break;
+                case 'Skewb':
+                    moves = ["R", "U", "L", "B"]; // Corner moves
+                    modifiers = ["", "'"];
+                    for (let i = 0; i < length; i++) {
+                        scramble.push(moves[Math.floor(Math.random() * moves.length)] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                    }
+                    break;
+                case 'Square-1':
+                    // Square-1 scrambles are highly specific (slice turns)
+                    // This is a very simplified representation.
+                    const sq1Moves = ["(1,0)", "(0,1)", "(1,1)", "(-1,0)", "(0,-1)", "(-1,-1)", "/"];
+                    for (let i = 0; i < length; i++) {
+                        scramble.push(sq1Moves[Math.floor(Math.random() * sq1Moves.length)]);
+                    }
+                    break;
+                case 'Clock':
+                    // Clock scrambles involve pin pushes and wheel turns
+                    const pinMoves = ["UR", "DR", "DL", "UL", "ALL"];
+                    const wheelMoves = ["U", "D", "R", "L", "F", "B"]; // Simplified wheel moves
+                    for (let i = 0; i < length; i++) {
+                        if (Math.random() < 0.5) {
+                            scramble.push(pinMoves[Math.floor(Math.random() * pinMoves.length)] + (Math.random() < 0.5 ? '+' : '-'));
+                        } else {
+                            scramble.push(wheelMoves[Math.floor(Math.random() * wheelMoves.length)] + Math.floor(Math.random() * 6 - 3)); // -3 to 3
+                        }
+                    }
+                    break;
+                case 'FTO':
+                    // FTO scramble (similar to 3x3 for simplicity here)
+                    moves = ["F", "R", "L", "B", "U", "D"];
+                    modifiers = ["", "'", "2"];
+                    for (let i = 0; i < length; i++) {
+                        scramble.push(moves[Math.floor(Math.random() * moves.length)] + modifiers[Math.floor(Math.random() * modifiers.length)]);
+                    }
+                    break;
+                default:
+                    scramble.push("No scramble available for this event.");
+                    break;
+            }
+            return scramble.join(" ");
+        }
+
+        // Main scramble generation function
+        function generateScramble(addToHistory = false) {
+            // Reset cube state based on the current event
+            if (currentEvent === '3x3' || currentEvent === '3x3 OH' || currentEvent === '3x3 BLD' || currentEvent === '3x3 Multi-BLD') {
+                currentCubeState = JSON.parse(JSON.stringify(initialCubeState3x3));
+            } else if (currentEvent === '2x2') {
+                currentCubeState = JSON.parse(JSON.stringify(initialCubeState2x2));
+            } else if (currentEvent === '4x4') {
+                currentCubeState = JSON.parse(JSON.stringify(initialCubeState4x4));
+            } else if (currentEvent === 'Pyraminx') {
+                currentCubeState = JSON.parse(JSON.stringify(initialPyraminxState));
+            }
+            else {
+                currentCubeState = null; // No specific cube state for other events
+            }
+
+            const newScramble = generateScrambleForEvent(currentEvent, scrambleLength);
+            currentScramble = newScramble;
+            scrambleDisplay.textContent = currentScramble;
+
+            if (addToHistory) {
+                // If we're not at the end of history (user clicked 'Last' previously),
+                // clear the 'future' scrambles before adding a new one.
+                if (currentScrambleIndex < scrambleHistory.length - 1) {
+                    scrambleHistory = scrambleHistory.slice(0, currentScrambleIndex + 1);
+                }
+                scrambleHistory.push({ scramble: newScramble, event: currentEvent });
+                currentScrambleIndex = scrambleHistory.length - 1;
+            }
+
+            // Apply moves to cube state only for supported visualizations
+            if (currentCubeState) {
+                const movesArray = currentScramble.split(' ');
+                movesArray.forEach(move => {
+                    currentCubeState = applyMove(currentCubeState, move, currentEvent);
+                });
+                drawCube(currentCubeState, currentEvent); // Draw the scrambled cube
+            } else {
+                // Clear canvas and display message for unsupported visualizations
+                ctx.clearRect(0, 0, scrambleCanvas.width, scrambleCanvas.height);
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-color').trim();
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Visualization not available', scrambleCanvas.width / 2, scrambleCanvas.height / 2 - 10);
+                ctx.fillText('for this event', scrambleCanvas.width / 2, scrambleCanvas.height / 2 + 10);
+            }
+            updateScrambleNavButtons();
+        }
+
+        // --- Cube State Manipulation (Rotations) ---
+
+        // Helper to rotate a square matrix (face) clockwise
+        function rotateSquareFaceClockwise(face) {
+            const size = face.length;
+            const newFace = Array(size).fill(0).map(() => Array(size).fill(null));
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    newFace[c][size - 1 - r] = face[r][c];
+                }
+            }
+            return newFace;
+        }
+
+        // Helper to rotate a square matrix (face) counter-clockwise
+        function rotateSquareFaceCounterClockwise(face) {
+            const size = face.length;
+            const newFace = Array(size).fill(0).map(() => Array(size).fill(null));
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    newFace[size - 1 - c][r] = face[r][c];
+                }
+            }
+            return newFace;
+        }
+
+        // Helper to rotate Pyraminx face (triangle portion) clockwise
+        // This is a simplified rotation for visualization, rotating the 3 core stickers and cycling outer stickers.
+        function rotatePyraminxFaceClockwise(face) {
+            const newFace = JSON.parse(JSON.stringify(face));
+            // Cycle inner stickers (center of the face)
+            const tempCenter = newFace[0][2];
+            newFace[0][2] = newFace[1][1];
+            newFace[1][1] = newFace[1][3];
+            newFace[1][3] = tempCenter;
+
+            // Cycle outer stickers (base of the face) - simplified
+            const tempOuter0 = newFace[2][0];
+            newFace[2][0] = newFace[2][4];
+            newFace[2][4] = newFace[2][3];
+            newFace[2][3] = newFace[2][2];
+            newFace[2][2] = newFace[2][1];
+            newFace[2][1] = tempOuter0;
+
+            return newFace;
+        }
+
+        // Helper to rotate Pyraminx face (triangle portion) counter-clockwise
+        function rotatePyraminxFaceCounterClockwise(face) {
+            const newFace = JSON.parse(JSON.stringify(face));
+            // Cycle inner stickers (center of the face)
+            const tempCenter = newFace[0][2];
+            newFace[0][2] = newFace[1][3];
+            newFace[1][3] = newFace[1][1];
+            newFace[1][1] = tempCenter;
+
+            // Cycle outer stickers (base of the face) - simplified
+            const tempOuter0 = newFace[2][0];
+            newFace[2][0] = newFace[2][1];
+            newFace[2][1] = newFace[2][2];
+            newFace[2][2] = newFace[2][3];
+            newFace[2][3] = newFace[2][4];
+            newFace[2][4] = tempOuter0;
+
+            return newFace;
+        }
+
+
+        // Applies a single clockwise move to the cube state (for 2x2, 3x3, 4x4)
+        // This function handles basic face rotations and their impact on adjacent faces.
+        // It does NOT handle inner layer moves (e.g., 'r', 'u', 'f' for NxN cubes) for visualization.
+        function _applySingleClockwiseMove(cube, faceChar, eventType) {
+            const newCube = JSON.parse(JSON.stringify(cube)); // Deep copy
+
+            // Pyraminx uses its own rotation logic, so this function is skipped for it.
+            if (eventType === 'Pyraminx') {
+                return newCube;
+            }
+
+            const size = newCube[faceChar].length;
+
+            // 1. Rotate the face itself clockwise
+            newCube[faceChar] = rotateSquareFaceClockwise(newCube[faceChar]);
+
+            // 2. Shift adjacent stickers based on the face being rotated
+            switch (faceChar) {
+                case 'R':
+                    // R move affects U, F, D, B faces (rightmost column of U, F, D, and left-most column of B)
+                    const tempUColR = [];
+                    for (let i = 0; i < size; i++) tempUColR.push(newCube['U'][i][size - 1]);
+
+                    for (let i = 0; i < size; i++) newCube['U'][i][size - 1] = newCube['F'][i][size - 1];
+                    for (let i = 0; i < size; i++) newCube['F'][i][size - 1] = newCube['D'][i][size - 1];
+                    for (let i = 0; i < size; i++) newCube['D'][i][size - 1] = newCube['B'][size - 1 - i][0]; // B column reversed
+                    for (let i = 0; i < size; i++) newCube['B'][i][0] = tempUColR[size - 1 - i]; // U column reversed
+                    break;
+
+                case 'L':
+                    // L move affects U, F, D, B faces (leftmost column of U, F, D, and right-most column of B)
+                    const tempUColL = [];
+                    for (let i = 0; i < size; i++) tempUColL.push(newCube['U'][i][0]);
+
+                    for (let i = 0; i < size; i++) newCube['U'][i][0] = newCube['B'][size - 1 - i][size - 1]; // B column reversed
+                    for (let i = 0; i < size; i++) newCube['B'][i][size - 1] = newCube['D'][size - 1 - i][0]; // D column reversed
+                    for (let i = 0; i < size; i++) newCube['D'][i][0] = newCube['F'][i][0];
+                    for (let i = 0; i < size; i++) newCube['F'][i][0] = tempUColL[i];
+                    break;
+
+                case 'U':
+                    // U move affects F, R, B, L faces (top row of F, R, B, L)
+                    const tempFRowU = [];
+                    for (let i = 0; i < size; i++) tempFRowU.push(newCube['F'][0][i]);
+
+                    for (let i = 0; i < size; i++) newCube['F'][0][i] = newCube['R'][0][i];
+                    for (let i = 0; i < size; i++) newCube['R'][0][i] = newCube['B'][0][i];
+                    for (let i = 0; i < size; i++) newCube['B'][0][i] = newCube['L'][0][i];
+                    for (let i = 0; i < size; i++) newCube['L'][0][i] = tempFRowU[i];
+                    break;
+
+                case 'D':
+                    // D move affects F, L, B, R faces (bottom row of F, L, B, R)
+                    const tempFRowD = [];
+                    for (let i = 0; i < size; i++) tempFRowD.push(newCube['F'][size - 1][i]);
+
+                    for (let i = 0; i < size; i++) newCube['F'][size - 1][i] = newCube['L'][size - 1][i];
+                    for (let i = 0; i < size; i++) newCube['L'][size - 1][i] = newCube['B'][size - 1][i];
+                    for (let i = 0; i < size; i++) newCube['B'][size - 1][i] = newCube['R'][size - 1][i];
+                    for (let i = 0; i < size; i++) newCube['R'][size - 1][i] = tempFRowD[i];
+                    break;
+
+                case 'F':
+                    // F move affects U, R, D, L faces (bottom row of U, left column of R, top row of D, right column of L)
+                    const tempURowF = [];
+                    for (let i = 0; i < size; i++) tempURowF.push(newCube['U'][size - 1][i]);
+
+                    for (let i = 0; i < size; i++) newCube['U'][size - 1][i] = newCube['L'][size - 1 - i][size - 1]; // L right column reversed
+                    for (let i = 0; i < size; i++) newCube['L'][i][size - 1] = newCube['D'][0][i];
+                    for (let i = 0; i < size; i++) newCube['D'][0][i] = newCube['R'][size - 1 - i][0]; // R left column reversed
+                    for (let i = 0; i < size; i++) newCube['R'][i][0] = tempURowF[i];
+                    break;
+
+                case 'B':
+                    // B move affects U, L, D, R faces (top row of U, right column of L, bottom row of D, left column of R)
+                    const tempURowB = [];
+                    for (let i = 0; i < size; i++) tempURowB.push(newCube['U'][0][i]);
+
+                    for (let i = 0; i < size; i++) newCube['U'][0][i] = newCube['R'][i][size - 1]; // R right column
+                    for (let i = 0; i < size; i++) newCube['R'][i][size - 1] = newCube['D'][size - 1][size - 1 - i]; // D bottom row reversed
+                    for (let i = 0; i < size; i++) newCube['D'][size - 1][i] = newCube['L'][i][0];
+                    for (let i = 0; i < size; i++) newCube['L'][i][0] = tempURowB[size - 1 - i]; // U top row reversed
+                    break;
+            }
+            return newCube;
+        }
+
+        // Applies a full move (e.g., R, R', R2, r, u) to the cube state
+        function applyMove(cube, moveString, eventType) {
+            let tempCube = JSON.parse(JSON.stringify(cube)); // Start with a fresh copy for each move application
+
+            const faceChar = moveString[0];
+            const modifier = moveString.length > 1 ? moveString.substring(1) : '';
+
+            let numRotations = 1;
+            if (modifier === "'") {
+                numRotations = 3; // A prime move is 3 clockwise rotations
+            } else if (modifier === "2") {
+                numRotations = 2; // A double move is 2 clockwise rotations
+            } else if (modifier === "++" || modifier === "--") { // Megaminx modifiers
+                // For Megaminx, we're not visualizing, so just return original cube
+                return tempCube;
+            } else if (faceChar.toLowerCase() === faceChar && eventType !== 'Pyraminx') { // Inner layer moves (r, u, f) for NxN
+                // For now, inner layer moves are not visualized for NxN cubes (e.g., 4x4 'r' move).
+                // A full implementation would require complex slice logic.
+                return tempCube;
+            }
+
+            if (eventType === 'Pyraminx') {
+                if (faceChar === faceChar.toLowerCase()) { // Tip moves (u, l, r, b)
+                    const tipKey = faceChar + 'Tip'; // e.g., 'uTip'
+                    // Pyraminx tips rotate 3 stickers, including the tip itself.
+                    // For simplified visualization, we'll just cycle the tip's color (to show a change).
+                    const colors = ['Y', 'R', 'O', 'G', 'B', 'W']; // All 6 colors
+                    const currentColorIndex = colors.indexOf(tempCube[tipKey]);
+                    const newColorIndex = (currentColorIndex + (modifier === "'" ? -1 : 1) + colors.length) % colors.length;
+                    tempCube[tipKey] = colors[newColorIndex];
+                } else { // Face moves (U, L, R, B)
+                    for (let i = 0; i < numRotations; i++) {
+                        if (modifier === "'") {
+                             tempCube[faceChar] = rotatePyraminxFaceCounterClockwise(tempCube[faceChar]);
+                        } else {
+                            tempCube[faceChar] = rotatePyraminxFaceClockwise(tempCube[faceChar]);
+                        }
+                        // Note: Adjacent face sticker cycling for Pyraminx faces is highly complex for 2D.
+                        // This simplified version only rotates the internal stickers of the face.
+                    }
+                }
+            } else { // For square puzzles (2x2, 3x3, 4x4)
+                for (let i = 0; i < numRotations; i++) {
+                    tempCube = _applySingleClockwiseMove(tempCube, faceChar, eventType);
+                }
+            }
+            return tempCube;
+        }
+
+        // --- Scramble Drawing (2D Cube Visualization) ---
+
+        // Draws the cube state onto the canvas
+        function drawCube(cubeState, eventType) {
+            const padding = 2; // Small padding between stickers
+            ctx.clearRect(0, 0, scrambleCanvas.width, scrambleCanvas.height); // Clear canvas
+
+            if (!cubeState) {
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-color').trim();
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Visualization not available', scrambleCanvas.width / 2, scrambleCanvas.height / 2 - 10);
+                ctx.fillText('for this event', scrambleCanvas.width / 2, scrambleCanvas.height / 2 + 10);
+                return;
+            }
+
+            if (eventType === 'Pyraminx') {
+                drawPyraminx(cubeState);
+                return;
+            }
+
+            const size = cubeState['U'].length; // 2 for 2x2, 3 for 3x3, 4 for 4x4
+            let currentCellSize;
+            if (size === 2) {
+                currentCellSize = scrambleCanvas.width / 8;
+            } else if (size === 3) {
+                currentCellSize = scrambleCanvas.width / 12;
+            } else if (size === 4) {
+                currentCellSize = scrambleCanvas.width / 16;
+            } else {
+                // Fallback for larger NxN cubes if they get here without specific logic
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-color').trim();
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Visualization not available', scrambleCanvas.width / 2, scrambleCanvas.height / 2 - 10);
+                ctx.fillText('for this NxN cube', scrambleCanvas.width / 2, scrambleCanvas.height / 2 + 10);
+                return;
+            }
+
+            // Define the layout of faces on the 2D net (standard cross layout)
+            const faceLayout = {
+                'U': { startX: size, startY: 0 },
+                'L': { startX: 0, startY: size },
+                'F': { startX: size, startY: size },
+                'R': { startX: size * 2, startY: size },
+                'B': { startX: size * 3, startY: size },
+                'D': { startX: size, startY: size * 2 }
+            };
+
+            for (const faceName in faceLayout) {
+                const faceData = cubeState[faceName];
+                const { startX, startY } = faceLayout[faceName];
+
+                for (let row = 0; row < size; row++) {
+                    for (let col = 0; col < size; col++) {
+                        const stickerColorChar = faceData[row][col];
+                        ctx.fillStyle = colorMap[stickerColorChar];
+                        ctx.fillRect(
+                            (startX + col) * currentCellSize + padding,
+                            (startY + row) * currentCellSize + padding,
+                            currentCellSize - 2 * padding,
+                            currentCellSize - 2 * padding
+                        );
+                        // Add a dark border to all stickers for visibility, especially white on white
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(
+                            (startX + col) * currentCellSize + padding,
+                            (startY + row) * currentCellSize + padding,
+                            currentCellSize - 2 * padding,
+                            currentCellSize - 2 * padding
+                        );
+                    }
+                }
+            }
+        }
+
+        // Draws the Pyraminx state onto the canvas (simplified 2D net)
+        function drawPyraminx(pyraminxState) {
+            const canvasWidth = scrambleCanvas.width;
+            const canvasHeight = scrambleCanvas.height;
+            const unit = canvasWidth / 10;
+            const stickerPadding = unit * 0.05;
+
+            // Function to draw a single triangular sticker
+            function drawPyraSticker(colorChar, p1x, p1y, p2x, p2y, p3x, p3y) {
+                ctx.fillStyle = colorMap[colorChar];
+                ctx.beginPath();
+                ctx.moveTo(p1x, p1y);
+                ctx.lineTo(p2x, p2y);
+                ctx.lineTo(p3x, p3y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+            }
+
+            // Define coordinates for the 4 faces and 4 tips on a 2D net
+            // This layout places U at the top, and L, R, B below it, forming a "star" or "cross" shape.
+            const U_tip_x = canvasWidth / 2;
+            const U_tip_y = unit * 0.5;
+            const U_base_y = U_tip_y + unit * 3.464;
+
+            // L face (left of U)
+            const L_offset_x = -unit * 2.5;
+            const L_offset_y = unit * 3;
+
+            // R face (right of U)
+            const R_offset_x = unit * 2.5;
+            const R_offset_y = unit * 3;
+
+            // B face (bottom-center, below U)
+            const B_offset_y = unit * 6;
+
+
+            // Draw U face stickers
+            // Center sticker (top triangle)
+            drawPyraSticker(pyraminxState['U'][0][2], U_tip_x, U_tip_y, U_tip_x - unit, U_tip_y + unit * 1.732, U_tip_x + unit, U_tip_y + unit * 1.732);
+            // Middle row (left, right, inverted center)
+            drawPyraSticker(pyraminxState['U'][1][1], U_tip_x - unit, U_tip_y + unit * 1.732, U_tip_x - 2 * unit, U_tip_y + 2 * unit * 1.732, U_tip_x, U_tip_y + 2 * unit * 1.732);
+            drawPyraSticker(pyraminxState['U'][1][3], U_tip_x + unit, U_tip_y + unit * 1.732, U_tip_x, U_tip_y + 2 * unit * 1.732, U_tip_x + 2 * unit, U_tip_y + 2 * unit * 1.732);
+            drawPyraSticker(pyraminxState['U'][2][2], U_tip_x - unit, U_tip_y + 2 * unit * 1.732, U_tip_x + unit, U_tip_y + 2 * unit * 1.732, U_tip_x, U_tip_y + unit * 1.732);
+
+
+            // Draw L face stickers (rotated 120 deg counter-clockwise relative to U)
+            // For simplicity, we'll draw them as if they are upright, but positioned to the left.
+            drawPyraSticker(pyraminxState['L'][0][2], U_tip_x + L_offset_x, U_tip_y + L_offset_y, U_tip_x - unit + L_offset_x, U_tip_y + unit * 1.732 + L_offset_y, U_tip_x + unit + L_offset_x, U_tip_y + unit * 1.732 + L_offset_y);
+            drawPyraSticker(pyraminxState['L'][1][1], U_tip_x - unit + L_offset_x, U_tip_y + unit * 1.732 + L_offset_y, U_tip_x - 2 * unit + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y, U_tip_x + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y);
+            drawPyraSticker(pyraminxState['L'][1][3], U_tip_x + unit + L_offset_x, U_tip_y + unit * 1.732 + L_offset_y, U_tip_x + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y, U_tip_x + 2 * unit + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y);
+            drawPyraSticker(pyraminxState['L'][2][2], U_tip_x - unit + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y, U_tip_x + unit + L_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y, U_tip_x + L_offset_x, U_tip_y + unit * 1.732 + L_offset_y);
+
+            // Draw R face stickers (rotated 120 deg clockwise relative to U)
+            drawPyraSticker(pyraminxState['R'][0][2], U_tip_x + R_offset_x, U_tip_y + R_offset_y, U_tip_x - unit + R_offset_x, U_tip_y + unit * 1.732 + R_offset_y, U_tip_x + unit + R_offset_x, U_tip_y + unit * 1.732 + R_offset_y);
+            drawPyraSticker(pyraminxState['R'][1][1], U_tip_x - unit + R_offset_x, U_tip_y + unit * 1.732 + R_offset_y, U_tip_x - 2 * unit + R_offset_x, U_tip_y + 2 * unit * 1.732 + R_offset_y, U_tip_x + R_offset_x, U_tip_y + 2 * unit * 1.732 + L_offset_y);
+            drawPyraSticker(pyraminxState['R'][1][3], U_tip_x + unit + R_offset_x, U_tip_y + unit * 1.732 + R_offset_y, U_tip_x + R_offset_x, U_tip_y + 2 * unit * 1.732 + R_offset_y, U_tip_x + 2 * unit + R_offset_x, U_tip_y + 2 * unit * 1.732 + R_offset_y);
+            drawPyraSticker(pyraminxState['R'][2][2], U_tip_x - unit + R_offset_x, U_tip_y + 2 * unit * 1.732 + R_offset_y, U_tip_x + unit + R_offset_x, U_tip_y + 2 * unit * 1.732 + R_offset_y, U_tip_x + R_offset_x, U_tip_y + unit * 1.732 + R_offset_y);
+
+            // Draw B face stickers (bottom-center, below U)
+            drawPyraSticker(pyraminxState['B'][0][2], U_tip_x, U_tip_y + B_offset_y, U_tip_x - unit, U_tip_y + unit * 1.732 + B_offset_y, U_tip_x + unit, U_tip_y + unit * 1.732 + B_offset_y);
+            drawPyraSticker(pyraminxState['B'][1][1], U_tip_x - unit, U_tip_y + unit * 1.732 + B_offset_y, U_tip_x - 2 * unit, U_tip_y + 2 * unit * 1.732 + B_offset_y, U_tip_x, U_tip_y + 2 * unit * 1.732 + B_offset_y);
+            drawPyraSticker(pyraminxState['B'][1][3], U_tip_x + unit, U_tip_y + unit * 1.732 + B_offset_y, U_tip_x, U_tip_y + 2 * unit * 1.732 + B_offset_y, U_tip_x + 2 * unit, U_tip_y + 2 * unit * 1.732 + B_offset_y);
+            drawPyraSticker(pyraminxState['B'][2][2], U_tip_x - unit, U_tip_y + 2 * unit * 1.732 + B_offset_y, U_tip_x + unit, U_tip_y + 2 * unit * 1.732 + B_offset_y, U_tip_x, U_tip_y + unit * 1.732 + B_offset_y);
+
+
+            // Draw tips as small circles
+            const tipRadius = unit * 0.4;
+            ctx.font = 'bold 10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // U tip (top)
+            ctx.fillStyle = colorMap[pyraminxState['uTip']];
+            ctx.beginPath();
+            ctx.arc(U_tip_x, U_tip_y - tipRadius, tipRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+
+            // L tip (left)
+            ctx.fillStyle = colorMap[pyraminxState['lTip']];
+            ctx.beginPath();
+            ctx.arc(U_tip_x + L_offset_x - tipRadius, U_tip_y + L_offset_y + tipRadius, tipRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+
+            // R tip (right)
+            ctx.fillStyle = colorMap[pyraminxState['rTip']];
+            ctx.beginPath();
+            ctx.arc(U_tip_x + R_offset_x + tipRadius, U_tip_y + R_offset_y + tipRadius, tipRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+
+            // B tip (bottom)
+            ctx.fillStyle = colorMap[pyraminxState['bTip']];
+            ctx.beginPath();
+            ctx.arc(U_tip_x, U_tip_y + B_offset_y + tipRadius + unit * 3.464, tipRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+        }
+
+
+        // Adjust canvas size for responsiveness
+        function resizeCanvas() {
+            const containerWidth = scrambleCanvas.parentElement.clientWidth;
+            // Set canvas width to be a percentage of its container, e.g., 80%
+            scrambleCanvas.width = Math.min(containerWidth * 0.8, 300);
+            // Adjust height based on current event type for better aspect ratio
+            if (currentEvent === '2x2') {
+                scrambleCanvas.height = scrambleCanvas.width * (6/8);
+            } else if (currentEvent === '3x3' || currentEvent.includes('3x3')) {
+                scrambleCanvas.height = scrambleCanvas.width * (9/12);
+            } else if (currentEvent === '4x4') {
+                scrambleCanvas.height = scrambleCanvas.width * (12/16);
+            } else if (currentEvent === 'Pyraminx') {
+                scrambleCanvas.height = scrambleCanvas.width * (1.2);
+            }
+            else {
+                scrambleCanvas.height = scrambleCanvas.width * (9/12);
+            }
+            // Only generate scramble if not explicitly navigating history
+            if (currentScrambleIndex === -1 || scrambleHistory.length === 0 || scrambleHistory[currentScrambleIndex].event !== currentEvent) {
+                generateScramble(true);
+            } else {
+                // Otherwise, just redraw the current scramble
+                const currentScrambleData = scrambleHistory[currentScrambleIndex];
+                currentScramble = currentScrambleData.scramble;
+                scrambleDisplay.textContent = currentScramble;
+                // Re-apply moves to get correct cube state for redraw
+                if (currentCubeState) {
+                    // Re-initialize cube state to a clean state for the current event
+                    if (currentEvent === '3x3' || currentEvent === '3x3 OH' || currentEvent === '3x3 BLD' || currentEvent === '3x3 Multi-BLD') {
+                        currentCubeState = JSON.parse(JSON.stringify(initialCubeState3x3));
+                    } else if (currentEvent === '2x2') {
+                        currentCubeState = JSON.parse(JSON.stringify(initialCubeState2x2));
+                    } else if (currentEvent === '4x4') {
+                        currentCubeState = JSON.parse(JSON.stringify(initialCubeState4x4));
+                    } else if (currentEvent === 'Pyraminx') {
+                        currentCubeState = JSON.parse(JSON.stringify(initialPyraminxState));
+                    } else {
+                        currentCubeState = null;
+                    }
+
+                    if (currentCubeState) {
+                        const movesArray = currentScramble.split(' ');
+                        movesArray.forEach(move => {
+                            currentCubeState = applyMove(currentCubeState, move, currentEvent);
+                        });
+                        drawCube(currentCubeState, currentEvent);
+                    } else {
+                         ctx.clearRect(0, 0, scrambleCanvas.width, scrambleCanvas.height);
+                         ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-color').trim();
+                         ctx.font = '14px Inter';
+                         ctx.textAlign = 'center';
+                         ctx.fillText('Visualization not available', scrambleCanvas.width / 2, scrambleCanvas.height / 2 - 10);
+                         ctx.fillText('for this event', scrambleCanvas.width / 2, scrambleCanvas.height / 2 + 10);
+                    }
+                }
+            }
+            updateScrambleNavButtons();
+        }
+
+        // --- Event Listeners ---
+
+        document.addEventListener('keydown', (e) => {
+            if (timerMode === 'manual') return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!running && spacebarDownTime === 0) {
+                    spacebarDownTime = Date.now();
+                    timerDisplay.classList.add('timer-ready');
+                    setTimeout(() => {
+                        if (Date.now() - spacebarDownTime >= holdTimeThreshold && !running) {
+                            timerDisplay.classList.remove('timer-ready');
+                            timerDisplay.classList.add('timer-holding');
+                            readyToStart = true;
+                        }
+                    }, holdTimeThreshold);
+                } else if (running) {
+                    stopTimer();
+                    spacebarDownTime = 0;
+                    readyToStart = false;
+                }
+            } else if (e.ctrlKey) {
+                if (e.key === '2' && !running) {
+                    e.preventDefault();
+                    applyPlusTwoToLastSolve();
+                } else if (e.key === '3' && !running) {
+                    e.preventDefault();
+                    applyDnfToLastSolve();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (timerMode === 'manual') return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!running && readyToStart) {
+                    startTimer();
+                } else if (!running && !readyToStart && spacebarDownTime > 0 && (Date.now() - spacebarDownTime < holdTimeThreshold)) {
+                    resetTimer();
+                }
+                spacebarDownTime = 0;
+                readyToStart = false;
+                timerDisplay.classList.remove('timer-ready', 'timer-holding');
+                if (timerMode === 'keyboard') {
+                    timerDisplay.style.color = 'var(--timer-color)';
+                }
+            }
+        });
+
+        // --- Scramble Navigation Logic ---
+        lastScrambleBtn.addEventListener('click', () => {
+            if (currentScrambleIndex > 0) {
+                currentScrambleIndex--;
+                const scrambleData = scrambleHistory[currentScrambleIndex];
+                currentScramble = scrambleData.scramble;
+                scrambleDisplay.textContent = currentScramble;
+                currentEvent = scrambleData.event;
+                eventSelect.value = currentEvent;
+                resizeCanvas();
+                updateScrambleNavButtons();
+            }
+        });
+
+        nextScrambleBtn.addEventListener('click', () => {
+            if (currentScrambleIndex < scrambleHistory.length - 1) {
+                currentScrambleIndex++;
+                const scrambleData = scrambleHistory[currentScrambleIndex];
+                currentScramble = scrambleData.scramble;
+                scrambleDisplay.textContent = currentScramble;
+                currentEvent = scrambleData.event;
+                eventSelect.value = currentEvent;
+                resizeCanvas();
+            } else {
+                generateScramble(true);
+            }
+            updateScrambleNavButtons();
+        });
+
+        function updateScrambleNavButtons() {
+            lastScrambleBtn.disabled = currentScrambleIndex <= 0;
+            nextScrambleBtn.disabled = false;
+        }
+
+
+        // --- Firestore Integration ---
+
+        // Saves a solve to Firestore
+        async function saveSolve(time, scramble, event) {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Solve not saved.");
+                return;
+            }
+            try {
+                const solvesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/solves`);
+                await addDoc(solvesCollectionRef, {
+                    time: time,
+                    scramble: scramble,
+                    event: event,
+                    timestamp: Date.now(),
+                    plusTwo: false,
+                    dnf: false
+                });
+                console.log("Solve saved successfully!");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        }
+
+        // Updates a solve in Firestore
+        async function updateSolveInFirestore(solveId, updates) {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Solve not updated.");
+                return;
+            }
+            try {
+                const solveDocRef = doc(db, `artifacts/${appId}/users/${userId}/solves`, solveId);
+                await updateDoc(solveDocRef, updates);
+                console.log("Solve updated successfully!");
+            } catch (e) {
+                console.error("Error updating document: ", e);
+            }
+        }
+
+        // Applies +2 to the last solve
+        async function applyPlusTwoToLastSolve() {
+            if (solves.length === 0) {
+                console.log("No solves to apply +2 to.");
+                return;
+            }
+            const lastSolve = solves[0];
+            if (lastSolve.dnf) {
+                console.log("Cannot apply +2 to a DNF solve.");
+                return;
+            }
+            if (lastSolve.plusTwo) {
+                console.log("Solve already has +2 applied.");
+                return;
+            }
+
+            const updatedTime = lastSolve.time + 2000;
+            await updateSolveInFirestore(lastSolve.id, { time: updatedTime, plusTwo: true });
+        }
+
+        // Applies DNF to the last solve
+        async function applyDnfToLastSolve() {
+            if (solves.length === 0) {
+                console.log("No solves to DNF.");
+                return;
+            }
+            const lastSolve = solves[0];
+            if (lastSolve.dnf) {
+                console.log("Solve is already DNF.");
+                return;
+            }
+
+            await updateSolveInFirestore(lastSolve.id, { dnf: true, plusTwo: false });
+        }
+
+        // Deletes a solve from Firestore
+        async function deleteSolve(solveId) {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Solve not deleted.");
+                return;
+            }
+            try {
+                const solveDocRef = doc(db, `artifacts/${appId}/users/${userId}/solves`, solveId);
+                await deleteDoc(solveDocRef);
+                console.log("Solve deleted successfully!");
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+            }
+        }
+
+        // Loads solves from Firestore in real-time
+        function loadSolves() {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Solves not loaded.");
+                return;
+            }
+            const solvesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/solves`);
+            // Use onSnapshot to listen for real-time updates
+            onSnapshot(solvesCollectionRef, (snapshot) => {
+                const fetchedSolves = [];
+                snapshot.forEach((doc) => {
+                    fetchedSolves.push({ id: doc.id, ...doc.data() });
+                });
+                // Sort by timestamp in descending order (most recent first)
+                solves = fetchedSolves.sort((a, b) => b.timestamp - a.timestamp);
+                updateSolvesList();
+                updateStatistics();
+            }, (error) => {
+                console.error("Error fetching solves: ", error);
+            });
+        }
+
+        // --- Settings Management ---
+
+        // Loads user settings from Firestore
+        async function loadSettings() {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Settings not loaded.");
+                return;
+            }
+            try {
+                const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/settings/userSettings`);
+                const docSnap = await getDoc(settingsDocRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    scrambleLength = data.scrambleLength || 20;
+                    holdTimeThreshold = data.holdTimeThreshold || 500;
+                    currentEvent = data.currentEvent || '3x3';
+                    timerMode = data.timerMode || 'keyboard';
+                    currentTheme = data.theme || 'standard';
+                    wcaId = data.wcaId || '';
+                    cameraEnabled = data.cameraEnabled || false;
+                    console.log("Settings loaded:", data);
+                } else {
+                    console.log("No settings found, using defaults.");
+                    // Save default settings if none exist
+                    await saveSettings();
+                }
+                // Update UI with loaded settings
+                scrambleLengthInput.value = scrambleLength;
+                holdTimeThresholdInput.value = holdTimeThreshold;
+                eventSelect.value = currentEvent;
+                themeSelect.value = currentTheme;
+                wcaIdInput.value = wcaId;
+                cameraToggle.checked = cameraEnabled;
+            } catch (e) {
+                console.error("Error loading settings: ", e);
+            }
+            // After loading settings, ensure scramble is generated for the correct event and theme is applied
+            applyTheme(currentTheme);
+            generateScramble(true);
+        }
+
+        // Saves user settings to Firestore
+        async function saveSettings() {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Settings not saved.");
+                return;
+            }
+            try {
+                const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/settings/userSettings`);
+                await setDoc(settingsDocRef, {
+                    scrambleLength: scrambleLength,
+                    holdTimeThreshold: holdTimeThreshold,
+                    currentEvent: currentEvent,
+                    timerMode: timerMode,
+                    theme: currentTheme,
+                    wcaId: wcaId,
+                    cameraEnabled: cameraEnabled
+                }, { merge: true });
+                console.log("Settings saved successfully!");
+            } catch (e) {
+                console.error("Error saving settings: ", e);
+            }
+        }
+
+        // Clears all solves for the current user
+        async function clearAllSolves() {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Cannot clear solves.");
+                return;
+            }
+            try {
+                const solvesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/solves`);
+                const q = query(solvesCollectionRef);
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    console.log("No solves to clear.");
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                querySnapshot.forEach((document) => {
+                    batch.delete(document.ref);
+                });
+                await batch.commit();
+                console.log("All solves cleared successfully!");
+            } catch (e) {
+                console.error("Error clearing all solves: ", e);
+            }
+        }
+
+        // --- UI Updates for Solves and Statistics ---
+
+        // Updates the displayed list of solves
+        function updateSolvesList() {
+            solvesList.innerHTML = '';
+            if (solves.length === 0) {
+                solvesList.innerHTML = '<li class="text-center text-gray-400">No solves yet. Start cubing!</li>';
+                return;
+            }
+            solves.forEach(solve => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="solve-time">${formatTime(solve.time, solve.dnf, solve.plusTwo)}</span>
+                    <span class="solve-scramble">${solve.scramble}</span>
+                    <span class="text-xs text-gray-500 ml-2">(${solve.event || 'N/A'})</span>
+                    <button class="delete-solve-btn" data-id="${solve.id}">Delete</button>
+                `;
+                solvesList.appendChild(li);
+            });
+
+            // Add event listeners for delete buttons
+            solvesList.querySelectorAll('.delete-solve-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const solveId = e.target.dataset.id;
+                    deleteSolve(solveId);
+                });
+            });
+        }
+
+        // Helper function to calculate average of N solves (WCA rules)
+        function calculateAverageOfN(solvesArray, n) {
+            if (solvesArray.length < n) {
+                return 'N/A';
+            }
+
+            // Get the most recent 'n' solves for the current event
+            const recentSolves = solvesArray
+                .filter(solve => solve.event === currentEvent)
+                .slice(0, n);
+
+            if (recentSolves.length < n) {
+                return 'N/A';
+            }
+
+            // Check for DNF in the window
+            if (recentSolves.some(solve => solve.dnf)) {
+                return 'DNF';
+            }
+
+            // Get effective times (including +2)
+            let times = recentSolves.map(solve => solve.time + (solve.plusTwo ? 2000 : 0));
+            
+            // Sort times to drop best and worst
+            times.sort((a, b) => a - b);
+
+            let sum = 0;
+            // For N >= 3, drop the best and worst. For N < 3, average all.
+            const startIndex = (n >= 3) ? 1 : 0;
+            const endIndex = (n >= 3) ? n - 1 : n;
+
+            for (let i = startIndex; i < endIndex; i++) {
+                sum += times[i];
+            }
+
+            const count = endIndex - startIndex;
+            if (count === 0) return 'N/A';
+
+            return formatTime(sum / count);
+        }
+
+        // Helper function to calculate the best average of 5
+        function calculateBestAverageOf5(solvesArray) {
+            const eventSolves = solvesArray.filter(solve => solve.event === currentEvent);
+            if (eventSolves.length < 5) {
+                return 'N/A';
+            }
+
+            let bestAvg = Infinity;
+            let foundValidAvg = false;
+
+            // Iterate through all possible contiguous groups of 5 solves
+            // The solves array is already sorted by timestamp descending, so we need to iterate backwards
+            // to get the "last 5", then "last 6-2", etc.
+            // For "best average", we look at all possible windows of 5.
+            for (let i = 0; i <= eventSolves.length - 5; i++) {
+                const windowSolves = eventSolves.slice(i, i + 5);
+
+                // Check for DNF in this window
+                if (windowSolves.some(solve => solve.dnf)) {
+                    continue;
+                }
+
+                let times = windowSolves.map(solve => solve.time + (solve.plusTwo ? 2000 : 0));
+                times.sort((a, b) => a - b);
+
+                // Drop best and worst
+                const currentAvg = (times[1] + times[2] + times[3]) / 3;
+
+                if (currentAvg < bestAvg) {
+                    bestAvg = currentAvg;
+                    foundValidAvg = true;
+                }
+            }
+
+            return foundValidAvg ? formatTime(bestAvg) : 'N/A';
+        }
+
+
+        // Updates the statistics display
+        function updateStatistics() {
+            // Filter solves for the current event
+            const currentEventSolves = solves.filter(solve => solve.event === currentEvent);
+            
+            totalSolvesDisplay.textContent = currentEventSolves.length;
+
+            const validSolvesForCurrentEvent = currentEventSolves.filter(solve => !solve.dnf);
+
+            if (validSolvesForCurrentEvent.length > 0) {
+                const totalTime = validSolvesForCurrentEvent.reduce((sum, solve) => sum + solve.time, 0);
+                const averageTime = totalTime / validSolvesForCurrentEvent.length;
+                averageTimeDisplay.textContent = formatTime(averageTime);
+
+                const bestTime = Math.min(...validSolvesForCurrentEvent.map(solve => solve.time));
+                bestTimeDisplay.textContent = formatTime(bestTime);
+            } else {
+                averageTimeDisplay.textContent = 'N/A';
+                bestTimeDisplay.textContent = 'N/A';
+            }
+
+            // Update new averages
+            bestAo5Display.textContent = calculateBestAverageOf5(solves);
+            ao12Display.textContent = calculateAverageOfN(solves, 12);
+            ao25Display.textContent = calculateAverageOfN(solves, 25);
+            ao50Display.textContent = calculateAverageOfN(solves, 50);
+            ao100Display.textContent = calculateAverageOfN(solves, 100);
+            ao200Display.textContent = calculateAverageOfN(solves, 200);
+            ao500Display.textContent = calculateAverageOfN(solves, 500);
+        }
+
+        // --- Modal Management (Helper) ---
+        function closeAllModals() {
+            settingsModal.classList.remove('open');
+            quickEventDropdown.classList.remove('open');
+            confirmationModal.classList.remove('open');
+            cameraPermissionModal.classList.remove('open');
+            eventSelect.classList.add('hidden');
+            document.body.appendChild(eventSelect);
+        }
+
+        // --- Settings Modal Event Listeners ---
+        settingsBtn.addEventListener('click', () => {
+            closeAllModals();
+            settingsModal.classList.add('open');
+            settingsModal.querySelector('.settings-section:nth-of-type(2)').appendChild(eventSelect);
+            eventSelect.classList.remove('hidden');
+        });
+
+        closeSettingsBtn.addEventListener('click', () => {
+            closeAllModals();
+        });
+
+        // Close settings modal if clicking outside content
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                closeAllModals();
+            }
+        });
+
+        // --- Quick Event Dropdown Event Listeners ---
+        quickEventToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (quickEventDropdown.classList.contains('open')) {
+                closeAllModals();
+            } else {
+                closeAllModals();
+                quickEventDropdown.classList.add('open');
+                quickEventDropdown.querySelector('.modal-body').prepend(eventSelect);
+                eventSelect.classList.remove('hidden');
+            }
+        });
+
+        closeQuickEventBtn.addEventListener('click', () => {
+            closeAllModals();
+        });
+
+        // Close quick event dropdown if clicking outside content
+        quickEventDropdown.addEventListener('click', (e) => {
+            if (e.target === quickEventDropdown) {
+                closeAllModals();
+            }
+        });
+
+        // Close any open modal/dropdown if clicking anywhere else on the document
+        document.addEventListener('click', (e) => {
+            if (!settingsModal.contains(e.target) && !quickEventDropdown.contains(e.target) &&
+                e.target !== settingsBtn && e.target !== quickEventToggleBtn &&
+                !confirmationModal.contains(e.target) && !cameraPermissionModal.contains(e.target)) {
+                closeAllModals();
+            }
+        });
+
+
+        // Update settings on input change
+        scrambleLengthInput.addEventListener('change', () => {
+            scrambleLength = parseInt(scrambleLengthInput.value);
+            if (isNaN(scrambleLength) || scrambleLength < 1) scrambleLength = 1;
+            if (scrambleLength > 100) scrambleLength = 100;
+            scrambleLengthInput.value = scrambleLength;
+            saveSettings();
+            generateScramble(true);
+        });
+
+        holdTimeThresholdInput.addEventListener('change', () => {
+            holdTimeThreshold = parseInt(holdTimeThresholdInput.value);
+            if (isNaN(holdTimeThreshold) || holdTimeThreshold < 100) holdTimeThreshold = 100;
+            if (holdTimeThreshold > 2000) holdTimeThreshold = 2000;
+            holdTimeThresholdInput.value = holdTimeThreshold;
+            saveSettings();
+        });
+
+        // Event listener for the dynamically moved eventSelect
+        eventSelect.addEventListener('change', () => {
+            currentEvent = eventSelect.value;
+            if (currentEvent === '2x2') {
+                scrambleLengthInput.min = 5;
+                scrambleLengthInput.max = 20;
+                if (scrambleLength > 20) scrambleLength = 10;
+            } else if (currentEvent === '3x3' || currentEvent.includes('3x3')) {
+                scrambleLengthInput.min = 10;
+                scrambleLengthInput.max = 50;
+                if (scrambleLength < 10 || scrambleLength > 50) scrambleLength = 20;
+            } else {
+                scrambleLengthInput.min = 1;
+                scrambleLengthInput.max = 50;
+                if (scrambleLength > 50) scrambleLength = 20;
+            }
+            scrambleLengthInput.value = scrambleLength;
+            saveSettings();
+            generateScramble(true);
+            resizeCanvas();
+            closeAllModals();
+        });
+
+        // New theme select event listener
+        themeSelect.addEventListener('change', () => {
+            const newTheme = themeSelect.value;
+            applyTheme(newTheme);
+            saveSettings();
+            generateScramble(false);
+        });
+
+        // WCA ID Save button listener
+        saveWcaIdBtn.addEventListener('click', () => {
+            wcaId = wcaIdInput.value.trim();
+            saveSettings();
+            updateWCAIdDisplay();
+        });
+
+        function updateWCAIdDisplay() {
+            if (wcaId) {
+                wcaIdDisplay.textContent = `WCA ID: ${wcaId}`;
+            } else {
+                wcaIdDisplay.textContent = 'WCA ID: N/A';
+            }
+        }
+
+
+        // Manual time entry logic (for the input in the settings modal)
+        addManualSolveBtn.addEventListener('click', () => {
+            addManualSolveFromInput(manualTimeInput.value);
+            manualTimeInput.value = '';
+        });
+
+        manualTimeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                addManualSolveFromInput(manualTimeInput.value);
+                manualTimeInput.value = '';
+            }
+        });
+
+        // New manual time entry logic for the main input
+        manualTimerMainInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                addManualSolveFromInput(manualTimerMainInput.value);
+                manualTimerMainInput.value = '';
+            }
+        });
+
+        function parseManualTime(timeString) {
+            timeString = timeString.trim();
+            if (!timeString) return null;
+
+            if (timeString.toUpperCase() === 'DNF') {
+                return 'DNF';
+            }
+
+            if (/^\d+$/.test(timeString)) {
+                const num = parseInt(timeString, 10);
+                return num * 10;
+            }
+
+            let totalMilliseconds = 0;
+            const parts = timeString.split(':');
+
+            if (parts.length === 1) {
+                const secondsPart = parseFloat(parts[0]);
+                if (isNaN(secondsPart)) return null;
+                totalMilliseconds = Math.round(secondsPart * 1000);
+            } else if (parts.length === 2) {
+                const minutes = parseInt(parts[0]);
+                const secondsPart = parseFloat(parts[1]);
+                if (isNaN(minutes) || isNaN(secondsPart)) return null;
+                totalMilliseconds = (minutes * 60 * 1000) + Math.round(secondsPart * 1000);
+            } else {
+                return null;
+            }
+
+            return totalMilliseconds;
+        }
+
+        async function addManualSolveFromInput(timeString) {
+            const parsedTime = parseManualTime(timeString);
+
+            if (parsedTime === null) {
+                console.error("Invalid time format. Please use SS.mmm, MM:SS.mmm, or a pure number (e.g., 10.5, 1:23.456, or 12345 for 12.345).");
+                return;
+            }
+
+            if (parsedTime === 'DNF') {
+                await saveSolve(0, currentScramble, currentEvent, true);
+            } else {
+                await saveSolve(parsedTime, currentScramble, currentEvent);
+            }
+            generateScramble(true);
+        }
+
+        const originalSaveSolve = saveSolve;
+        saveSolve = async (time, scramble, event, dnf = false) => {
+            if (!db || !userId || !isAuthReady) {
+                console.warn("Firestore not initialized or user not authenticated. Solve not saved.");
+                return;
+            }
+            try {
+                const solvesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/solves`);
+                await addDoc(solvesCollectionRef, {
+                    time: time,
+                    scramble: scramble,
+                    event: event,
+                    timestamp: Date.now(),
+                    plusTwo: false,
+                    dnf: dnf
+                });
+                console.log("Solve saved successfully!");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        };
+
+
+        clearSolvesBtn.addEventListener('click', () => {
+            confirmationModal.classList.add('open');
+            settingsModal.classList.remove('open');
+        });
+
+        // --- Confirmation Modal Event Listeners ---
+        closeConfirmationBtn.addEventListener('click', () => {
+            confirmationModal.classList.remove('open');
+        });
+
+        cancelClearBtn.addEventListener('click', () => {
+            confirmationModal.classList.remove('open');
+        });
+
+        confirmClearBtn.addEventListener('click', async () => {
+            await clearAllSolves();
+            confirmationModal.classList.remove('open');
+        });
+
+        confirmationModal.addEventListener('click', (e) => {
+            if (e.target === confirmationModal) {
+                confirmationModal.classList.remove('open');
+            }
+        });
+
+        // --- Timer Mode Toggle Logic ---
+        toggleTimerModeBtn.addEventListener('click', () => {
+            timerMode = (timerMode === 'keyboard') ? 'manual' : 'keyboard';
+            saveSettings();
+            updateTimerModeUI();
+            resetTimer();
+        });
+
+        function updateTimerModeUI() {
+            if (timerMode === 'keyboard') {
+                toggleTimerModeBtn.textContent = 'Switch to Manual Entry';
+                timerDisplay.classList.remove('hidden');
+                manualTimerMainInput.classList.add('hidden');
+                timerDisplay.style.color = 'var(--timer-color)';
+            } else {
+                toggleTimerModeBtn.textContent = 'Switch to Keyboard Timer';
+                timerDisplay.classList.add('hidden');
+                manualTimerMainInput.classList.remove('hidden');
+                manualTimerMainInput.value = '';
+                manualTimerMainInput.classList.add('timer-manual-mode');
+                manualTimerMainInput.style.color = 'var(--manual-mode-color)';
+            }
+        }
+
+        // --- Camera Logic ---
+        cameraToggle.addEventListener('change', () => {
+            cameraEnabled = cameraToggle.checked;
+            if (cameraEnabled) {
+                enableCamera();
+            } else {
+                disableCamera();
+            }
+            saveSettings();
+        });
+
+        async function enableCamera() {
+            if (mediaStream) {
+                cameraFeed.srcObject = mediaStream;
+                cameraFeed.classList.remove('hidden');
+                startRecordingBtn.disabled = false;
+                return;
+            }
+            try {
+                // Request both video and audio
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                mediaStream = stream;
+                cameraFeed.srcObject = stream;
+                cameraFeed.classList.remove('hidden');
+                console.log("Camera and microphone enabled.");
+
+                // Initialize MediaRecorder with the stream (including audio)
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `solve_${Date.now()}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    recordedChunks = [];
+                    console.log("Recording stopped and downloaded.");
+                    recordingStatusDisplay.classList.add('hidden');
+                };
+
+                startRecordingBtn.disabled = false;
+                stopRecordingBtn.disabled = true;
+
+            } catch (err) {
+                console.error("Error accessing camera/microphone: ", err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showCameraPermissionDeniedModal();
+                } else {
+                    console.error("Other camera/microphone access error:", err);
+                }
+                cameraEnabled = false;
+                cameraToggle.checked = false;
+                saveSettings();
+                startRecordingBtn.disabled = true;
+                stopRecordingBtn.disabled = true;
+            }
+        }
+
+        function disableCamera() {
+            if (mediaStream) {
+                if (recording) {
+                    stopRecording();
+                }
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                mediaRecorder = null;
+            }
+            cameraFeed.srcObject = null;
+            cameraFeed.classList.add('hidden');
+            console.log("Camera disabled.");
+            startRecordingBtn.disabled = true;
+            stopRecordingBtn.disabled = true;
+            recordingStatusDisplay.classList.add('hidden');
+        }
+
+        // Function to show the camera permission denied modal
+        function showCameraPermissionDeniedModal() {
+            closeAllModals();
+            cameraPermissionModal.classList.add('open');
+        }
+
+        // Event listeners for the camera permission denied modal
+        closeCameraPermissionModalBtn.addEventListener('click', () => {
+            cameraPermissionModal.classList.remove('open');
+        });
+
+        okCameraPermissionBtn.addEventListener('click', () => {
+            cameraPermissionModal.classList.remove('open');
+        });
+
+
+        // Recording functionality
+        startRecordingBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'inactive') {
+                recordedChunks = [];
+                mediaRecorder.start();
+                recording = true;
+                startRecordingBtn.disabled = true;
+                stopRecordingBtn.disabled = false;
+                recordingStatusDisplay.classList.remove('hidden');
+                console.log("Recording started.");
+            } else {
+                console.warn("MediaRecorder is not ready or already recording.");
+            }
+        });
+
+        stopRecordingBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recording = false;
+                startRecordingBtn.disabled = false;
+                stopRecordingBtn.disabled = true;
+                console.log("Recording stopped.");
+            } else {
+                console.warn("MediaRecorder is not recording.");
+            }
+        });
+
+        // --- AI Analysis for Start Position ---
+
+        async function analyzeStartImage() {
+            if (!cameraEnabled || !mediaStream || cameraFeed.readyState !== 4) {
+                aiFeedbackDisplay.textContent = "Camera not active for AI analysis.";
+                aiFeedbackDisplay.classList.add('error');
+                return;
+            }
+
+            aiFeedbackDisplay.textContent = "Analyzing start position...";
+            aiFeedbackDisplay.classList.remove('error'); // Clear error class
+
+            // Ensure canvas dimensions match video for capture
+            captureCanvas.width = cameraFeed.videoWidth;
+            captureCanvas.height = cameraFeed.videoHeight;
+            captureCtx.drawImage(cameraFeed, 0, 0, captureCanvas.width, captureCanvas.height);
+            
+            // Get image data as Base64
+            const base64ImageData = captureCanvas.toDataURL('image/jpeg').split(',')[1]; // Remove "data:image/jpeg;base64," prefix
+
+            if (!base64ImageData) {
+                aiFeedbackDisplay.textContent = "Failed to capture image for AI analysis.";
+                aiFeedbackDisplay.classList.add('error');
+                return;
+            }
+
+            try {
+                let chatHistory = [];
+                const prompt = "Analyze the hand placement in this image for a speedcubing timer start. Is it a good, neutral, or bad starting position? Provide a concise reason (1-2 sentences). Focus on hand readiness, finger position, and overall posture for a quick and fair start. Avoid mentioning the cube itself unless it's directly related to hand placement (e.g., hands already on the cube).";
+                
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                { text: prompt },
+                                {
+                                    inlineData: {
+                                        mimeType: "image/jpeg",
+                                        data: base64ImageData
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                };
+
+                const apiKey = ""; // Canvas will automatically provide this in runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    aiFeedbackDisplay.textContent = `AI Feedback: ${text}`;
+                    aiFeedbackDisplay.classList.remove('error'); // Clear error class
+                } else {
+                    aiFeedbackDisplay.textContent = "AI analysis failed: No valid response.";
+                    aiFeedbackDisplay.classList.add('error');
+                    console.error("AI analysis failed: Unexpected API response structure", result);
+                }
+            } catch (error) {
+                aiFeedbackDisplay.textContent = "AI analysis error: Could not connect to service.";
+                aiFeedbackDisplay.classList.add('error');
+                console.error("Error calling Gemini API for image analysis:", error);
+            }
+        }
+
+
+        // --- Initial Setup ---
+        window.onload = () => {
+            if (Object.keys(firebaseConfig).length === 0) {
+                currentCubeState = JSON.parse(JSON.stringify(initialCubeState3x3));
+                generateScramble(true);
+            }
+            resizeCanvas();
+            updateScrambleNavButtons();
+            updateTimerModeUI();
+            applyTheme(currentTheme);
+
+            startRecordingBtn.disabled = !cameraEnabled;
+            stopRecordingBtn.disabled = true;
+        };
+
+        window.addEventListener('resize', resizeCanvas);
+
+    </script>
+</body>
+</html>
